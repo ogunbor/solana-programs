@@ -44,7 +44,7 @@ fn process_instruction(
             msg!("Initializing: {} + {} = {}", num1, num2, sum);
 
             // Get the rent sysvar
-            let account_size = 24;
+            let account_size = result_account_data.try_to_vec()?.len();
             let lamports = Rent::get()?.minimum_balance(account_size);
 
             // Create account
