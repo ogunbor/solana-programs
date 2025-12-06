@@ -1,0 +1,11 @@
+[package]
+name = "storage-program"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+create-type = ["cdylib", "lib"]
+
+[dependencies]
+borsh = "1.6.0"
+solana-program = "3.0.0"
