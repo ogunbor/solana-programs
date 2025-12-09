@@ -37,39 +37,42 @@ fn process_instruction(
     };
 
     match ResultInstruction::try_from_slice(instruction_data)? {
-        ResultInstruction::Initialize { num1, num2 } => {
-            let sum = num1.checked_add(num2)
-                .ok_or(ProgramError::InvalidArgument)?;
-            
-            msg!("Initializing: {} + {} = {}", num1, num2, sum);
+        
+    ResultInstruction::Initialize { num1, num2 } => {
+    let sum = num1.checked_add(num2)
+        .ok_or(ProgramError::InvalidArgument)?;
+    
+    msg!("Initializing: {} + {} = {}", num1, num2, sum);
 
-            // Get the rent sysvar
-            let account_size = result_account_data.try_to_vec()?.len();
-            let lamports = Rent::get()?.minimum_balance(account_size);
+    // Create the data structure
+    let result_account_data = ResultAccount {
+        num1,
+        num2,
+        result: sum,
+    };
 
-            // Create account
-            let create_ix = system_instruction::create_account(
-                payer.key,
-                result_account.key,
-                lamports,
-                account_size as u64,  // Space
-                program_id,
-            );
-            
-            invoke(&create_ix, &[
-                payer.clone(),
-                result_account.clone(),
-                system_program_info.clone(),
-            ])?;
-           
-            // Store the calculated result
-            let result_account_data = ResultAccount {
-                num1,
-                num2,
-                result: sum,
-            };
-            result_account_data.serialize(&mut *result_account.data.borrow_mut())?;
-        }
+    // Calculate size
+    let account_size = result_account_data.try_to_vec()?.len();
+    let lamports = Rent::get()?.minimum_balance(account_size);
+
+    // Create account
+    let create_ix = system_instruction::create_account(
+        payer.key,
+        result_account.key,
+        lamports,
+        account_size as u64,
+        program_id,
+    );
+    
+    invoke(&create_ix, &[
+        payer.clone(),
+        result_account.clone(),
+        system_program_info.clone(),
+    ])?;
+   
+    // Store result
+    result_account_data.serialize(&mut *result_account.data.borrow_mut())?;
+}
         
         ResultInstruction::Update { num1, num2 } => {
             let sum = num1.checked_add(num2)
